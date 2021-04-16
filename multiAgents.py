@@ -147,6 +147,44 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         Returns the minimax action using self.depth and self.evaluationFunction
         """
         "*** YOUR CODE HERE ***"
+        numAgent = gameState.getNumAgents()
+        ActionScore = []
+
+        def _removeStop(List):
+            return [x for x in List if x != 'Stop']
+
+        def _alphaBeta(s, depth, iterCount, alpha, beta):
+            if (depth >= self.depth and iterCount != 1) or s.isWin() or s.isLose():
+                return self.evaluationFunction(s)
+            if iterCount == 1:  # Pacman max
+                result = -1e10
+                for a in _removeStop(s.getLegalActions(iterCount - 1)):
+                    sdot = s.generateSuccessor(iterCount - 1, a)
+                    if iterCount == numAgent:
+                        result = max(result, _alphaBeta(sdot, depth + 1, 1, alpha, beta))
+                    else:
+                        result = max(result, _alphaBeta(sdot, depth, iterCount + 1, alpha, beta))
+                    alpha = max(alpha, result)
+                    if depth == 1:
+                        ActionScore.append(result)
+                    if beta < alpha:
+                        break
+                return result
+            else:  # Ghost min
+                result = 1e10
+                for a in _removeStop(s.getLegalActions(iterCount - 1)):
+                    sdot = s.generateSuccessor(iterCount - 1, a)
+                    if iterCount == numAgent:
+                        result = min(result, _alphaBeta(sdot, depth + 1, 1, alpha, beta))
+                    else:
+                        result = min(result, _alphaBeta(sdot, depth, iterCount + 1, alpha, beta))
+                    beta = min(beta, result)
+                    if beta < alpha:
+                        break
+                return result
+
+        result = _alphaBeta(gameState, 1, 1, -1e20, 1e20)
+        return _removeStop(gameState.getLegalActions(0))[ActionScore.index(max(ActionScore))]
         util.raiseNotDefined()
 
 class ExpectimaxAgent(MultiAgentSearchAgent):

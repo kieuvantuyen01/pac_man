@@ -147,14 +147,19 @@ class MinimaxAgent(MultiAgentSearchAgent):
                 actions = gameState.getLegalActions(agentIndex)
                 if len(actions) == 0:
                     return self.evaluationFunction(gameState)
-                distance = (miniMax(agentIndex + 1, depth, gameState.generateSuccessor(agentIndex, i)) for i in actions)
+                distances = (miniMax(agentIndex + 1, depth, gameState.generateSuccessor(agentIndex, i)) for i in actions)
                 if agentIndex == 0:
-                    return max(distance)
+                    return max(distances)
                 else:
-                    return min(distance)
-
-        best_action = lambda x: miniMax(1, 1, gameState.generateSuccessor(0, x))
-        return max(gameState.getLegalActions(0), key = best_action)
+                    return min(distances)
+        best_score = 0
+        best_action = Directions.SOUTH
+        for action in gameState.getLegalActions(0):
+            score = miniMax(1, 1, gameState.generateSuccessor(0, action))
+            if (score > best_score):
+                best_action = action
+                best_score = score
+        return best_action
 
 
 class AlphaBetaAgent(MultiAgentSearchAgent):

@@ -142,7 +142,6 @@ class MinimaxAgent(MultiAgentSearchAgent):
                     return self.evaluationFunction(gameState)
                 else:
                     return miniMax(0, depth + 1, gameState)
-
             else:
                 actions = gameState.getLegalActions(agentIndex)
                 if len(actions) == 0:
@@ -152,6 +151,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
                     return max(distances)
                 else:
                     return min(distances)
+                
         best_score = 0
         best_action = Directions.SOUTH
         for action in gameState.getLegalActions(0):

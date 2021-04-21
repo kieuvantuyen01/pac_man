@@ -51,7 +51,7 @@ class ReflexAgent(Agent):
 
         return legalMoves[chosenIndex]
 
-    def evaluationFunction(self, currentGameState, action):
+    def evaluationFunction(self, currentGameState, action, BIGNUM=10000):
         """
         Design a better evaluation function here.
 
@@ -69,26 +69,41 @@ class ReflexAgent(Agent):
         # Useful information you can extract from a GameState (pacman.py)
         successorGameState = currentGameState.generatePacmanSuccessor(action)
         newPos = successorGameState.getPacmanPosition()
-        newFood = successorGameState.getFood()
+        newFoods = successorGameState.getFood().asList()
         newGhostStates = successorGameState.getGhostStates()
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
         "*** YOUR CODE HERE ***"
-        closestghost = min([manhattanDistance(newPos, ghost.getPosition()) for ghost in newGhostStates])
+        distancesToGhosts = []
+        for ghostState in newGhostStates:
+            ghostDistance = manhattanDistance(newPos, ghostState.getPosition())
+            distancesToGhosts.append(ghostDistance)
+        nearestGhost = min(distancesToGhosts)
+        farthestGhost = max(distancesToGhosts)
 
-        if closestghost:
-            ghost_dist = -10 / closestghost
-        else:
-            ghost_dist = -1000
+        nearestGhostPoint = 1.0 / (nearestGhost * 1.0 + 1)
+        farthestGhostPoint = 1.0 / (farthestGhost * 1.0 + 1)
+        avgGhostPoint = (nearestGhostPoint + farthestGhostPoint) / 2.0
 
-        foodList = newFood.asList()
-        if foodList:
-            closestfood = min([manhattanDistance(newPos, food) for food in foodList])
-        else:
-            closestfood = 0
+        distancesToFood = []
+        nearestFood = 0
+        if newFoods:
+            for food in newFoods:
+                foodDistance = manhattanDistance(newPos, food)
+                distancesToFood.append(foodDistance)
+            nearestFood = min(distancesToFood)
 
-        # large weight to number of food left
-        return (-2 * closestfood) + ghost_dist - (100 * len(foodList))
+        nearestFoodPoint = 10.0 / (nearestFood * 1.0 + 1)
+        remainFoodPoint = 50.0 / (len(newFoods) * 1.0 + 1)
+
+        point = nearestFoodPoint + remainFoodPoint + avgGhostPoint
+
+        if newScaredTimes[distancesToGhosts.index(nearestGhost)] <= 0:
+            point -= 11.0 / (nearestGhost * 1.0 + 1)
+        elif newScaredTimes[distancesToGhosts.index(nearestGhost)] > 20:
+            point += 100
+
+        return successorGameState.getScore() + point
 
 
 def scoreEvaluationFunction(currentGameState):

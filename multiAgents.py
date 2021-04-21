@@ -51,7 +51,7 @@ class ReflexAgent(Agent):
 
         return legalMoves[chosenIndex]
 
-    def evaluationFunction(self, currentGameState, action):
+    def evaluationFunction(self, currentGameState, action, BIGNUM=10000):
         """
         Design a better evaluation function here.
 
@@ -69,12 +69,41 @@ class ReflexAgent(Agent):
         # Useful information you can extract from a GameState (pacman.py)
         successorGameState = currentGameState.generatePacmanSuccessor(action)
         newPos = successorGameState.getPacmanPosition()
-        newFood = successorGameState.getFood()
+        newFoods = successorGameState.getFood().asList()
         newGhostStates = successorGameState.getGhostStates()
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
         "*** YOUR CODE HERE ***"
-        return successorGameState.getScore()
+        distancesToGhosts = []
+        for ghostState in newGhostStates:
+            ghostDistance = manhattanDistance(newPos, ghostState.getPosition())
+            distancesToGhosts.append(ghostDistance)
+        nearestGhost = min(distancesToGhosts)
+        farthestGhost = max(distancesToGhosts)
+
+        nearestGhostPoint = 1.0 / (nearestGhost * 1.0 + 1)
+        farthestGhostPoint = 1.0 / (farthestGhost * 1.0 + 1)
+        avgGhostPoint = (nearestGhostPoint + farthestGhostPoint) / 2.0
+
+        distancesToFood = []
+        nearestFood = 0
+        if newFoods:
+            for food in newFoods:
+                foodDistance = manhattanDistance(newPos, food)
+                distancesToFood.append(foodDistance)
+            nearestFood = min(distancesToFood)
+
+        nearestFoodPoint = 10.0 / (nearestFood * 1.0 + 1)
+        remainFoodPoint = 50.0 / (len(newFoods) * 1.0 + 1)
+
+        point = nearestFoodPoint + remainFoodPoint + avgGhostPoint
+
+        if newScaredTimes[distancesToGhosts.index(nearestGhost)] <= 0:
+            point -= 11.0 / (nearestGhost * 1.0 + 1)
+        elif newScaredTimes[distancesToGhosts.index(nearestGhost)] > 20:
+            point += 100
+
+        return successorGameState.getScore() + point
 
 
 def scoreEvaluationFunction(currentGameState):
@@ -138,6 +167,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
         Returns whether or not the game state is a losing state
         """
         "*** YOUR CODE HERE ***"
+<<<<<<< HEAD
         numAgent = gameState.getNumAgents()
         ActionScore = []
 
@@ -177,6 +207,34 @@ class MinimaxAgent(MultiAgentSearchAgent):
         # print(_removeStop(gameState.getLegalActions(0)), ActionScore)
         return _removeStop(gameState.getLegalActions(0))[ActionScore.index(max(ActionScore))]
         util.raiseNotDefined()
+=======
+
+        def miniMax(agentIndex, depth, gameState):
+            if agentIndex == gameState.getNumAgents():
+                if depth == self.depth or gameState.isWin() or gameState.isLose():
+                    return self.evaluationFunction(gameState)
+                else:
+                    return miniMax(0, depth + 1, gameState)
+            else:
+                actions = gameState.getLegalActions(agentIndex)
+                if len(actions) == 0:
+                    return self.evaluationFunction(gameState)
+                distances = (miniMax(agentIndex + 1, depth, gameState.generateSuccessor(agentIndex, i)) for i in
+                             actions)
+                if agentIndex == 0:
+                    return max(distances)
+                else:
+                    return min(distances)
+
+        best_score = 0
+        best_action = Directions.SOUTH
+        for action in gameState.getLegalActions(0):
+            score = miniMax(1, 1, gameState.generateSuccessor(0, action))
+            if (score > best_score):
+                best_action = action
+                best_score = score
+        return best_action
+>>>>>>> 56f98548382fc20b51d9a52e7a5c712ccbcb007f
 
 
 class AlphaBetaAgent(MultiAgentSearchAgent):

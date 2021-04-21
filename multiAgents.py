@@ -69,7 +69,7 @@ class ReflexAgent(Agent):
         # Useful information you can extract from a GameState (pacman.py)
         successorGameState = currentGameState.generatePacmanSuccessor(action)
         newPos = successorGameState.getPacmanPosition()
-        newFoods = successorGameState.getFood().asList()
+        newFood = successorGameState.getFood()
         newGhostStates = successorGameState.getGhostStates()
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
@@ -81,22 +81,23 @@ class ReflexAgent(Agent):
         nearestGhost = min(distancesToGhosts)
         farthestGhost = max(distancesToGhosts)
 
-        nearestGhostPoint = 1.0 / (nearestGhost * 1.0 + 1)
-        farthestGhostPoint = 1.0 / (farthestGhost * 1.0 + 1)
-        avgGhostPoint = (nearestGhostPoint + farthestGhostPoint) / 2.0
+        nearestGhostScore = 1.0 / (nearestGhost * 1.0 + 1)
+        farthestGhostScore = 1.0 / (farthestGhost * 1.0 + 1)
+        avgGhostScore = (nearestGhostScore + farthestGhostScore) / 2.0
 
+        newFoodList = newFood.asList()
         distancesToFood = []
         nearestFood = 0
-        if newFoods:
-            for food in newFoods:
+        if newFoodList:
+            for food in newFoodList:
                 foodDistance = manhattanDistance(newPos, food)
                 distancesToFood.append(foodDistance)
             nearestFood = min(distancesToFood)
 
-        nearestFoodPoint = 10.0 / (nearestFood * 1.0 + 1)
-        remainFoodPoint = 50.0 / (len(newFoods) * 1.0 + 1)
+        nearestFoodScore = 10.0 / (nearestFood * 1.0 + 1)
+        remainFoodScore = 50.0 / (len(newFoodList) * 1.0 + 1)
 
-        point = nearestFoodPoint + remainFoodPoint + avgGhostPoint
+        point = nearestFoodScore + remainFoodScore + avgGhostScore
 
         if newScaredTimes[distancesToGhosts.index(nearestGhost)] <= 0:
             point -= 11.0 / (nearestGhost * 1.0 + 1)

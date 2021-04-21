@@ -138,6 +138,44 @@ class MinimaxAgent(MultiAgentSearchAgent):
         Returns whether or not the game state is a losing state
         """
         "*** YOUR CODE HERE ***"
+        numAgent = gameState.getNumAgents()
+        ActionScore = []
+
+        def _removeStop(List):
+            return [x for x in List if x != 'Stop']
+
+        def _alphaBeta(curGameState, depth, agentIndex, alpha, beta):
+            if (depth >= self.depth and (
+                    numAgent == 1 or agentIndex == numAgent)) or curGameState.isWin() or curGameState.isLose():
+                return self.evaluationFunction(curGameState)
+
+            if agentIndex == 0:  # Pacman max
+                result = alpha
+                # temp=self.evaluationFunction(curGameState)
+                for a in _removeStop(curGameState.getLegalActions(agentIndex)):
+                    sdot = curGameState.generateSuccessor(agentIndex, a)
+                    if agentIndex == numAgent - 1:
+                        result = max(result, _alphaBeta(sdot, depth + 1, 0, alpha, beta))
+                    else:
+                        result = max(result, _alphaBeta(sdot, depth, agentIndex + 1, alpha, beta))
+                    alpha = max(alpha, result)
+                    if depth == 1:
+                        ActionScore.append(result)
+                return result
+            else:  # Ghost min
+                result = beta
+                for a in _removeStop(curGameState.getLegalActions(agentIndex)):
+                    sdot = curGameState.generateSuccessor(agentIndex, a)
+                    if depth < self.depth and agentIndex == numAgent - 1:
+                        result = min(result, _alphaBeta(sdot, depth + 1, 0, alpha, beta))
+                    else:
+                        result = min(result, _alphaBeta(sdot, depth, agentIndex + 1, alpha, beta))
+                    beta = min(beta, result)
+                return result
+
+        result = _alphaBeta(gameState, 1, 0, -1e20, 1e20)
+        # print(_removeStop(gameState.getLegalActions(0)), ActionScore)
+        return _removeStop(gameState.getLegalActions(0))[ActionScore.index(max(ActionScore))]
         util.raiseNotDefined()
 
 
@@ -154,40 +192,48 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         numAgent = gameState.getNumAgents()
         ActionScore = []
 
-        def _removeStop(List):
-            return [x for x in List if x != 'Stop']
+        def removeStop(ListAction):
+            actions=[]
+            for x in ListAction:
+                if x != 'Stop':
+                    actions.append(x)
+            return actions
 
-        def _alphaBeta(curGameState, depth, agentIndex, alpha, beta):
-            if (depth >= self.depth and agentIndex == numAgent) or curGameState.isWin() or curGameState.isLose():
+        def alphaBeta(curGameState, depth, agentIndex, alpha, beta):
+            if (depth >= self.depth and (numAgent==1 or agentIndex == numAgent)) or curGameState.isWin() or curGameState.isLose():
                 return self.evaluationFunction(curGameState)
+
             if agentIndex == 0:  # Pacman max
-                result = alpha
-                for a in _removeStop(curGameState.getLegalActions(agentIndex)):
+                result = -1e10
+                #temp=self.evaluationFunction(curGameState)
+                for a in removeStop(curGameState.getLegalActions(agentIndex)):
                     sdot = curGameState.generateSuccessor(agentIndex, a)
                     if agentIndex == numAgent - 1:
-                        result = max(result, _alphaBeta(sdot, depth + 1, 0, alpha, beta))
+                        result = max(result, alphaBeta(sdot, depth + 1, 0, alpha, beta))
                     else:
-                        result = max(result, _alphaBeta(sdot, depth, agentIndex + 1, alpha, beta))
+                        result = max(result, alphaBeta(sdot, depth, agentIndex + 1, alpha, beta))
                     alpha = max(alpha, result)
                     if depth == 1:
                         ActionScore.append(result)
                     if beta < alpha:
                         break
+                return result
             else:  # Ghost min
-                result = beta
-                for a in _removeStop(curGameState.getLegalActions(agentIndex)):
+                result = 1e10
+                for a in removeStop(curGameState.getLegalActions(agentIndex)):
                     sdot = curGameState.generateSuccessor(agentIndex, a)
                     if depth < self.depth and agentIndex == numAgent - 1:
-                        result = min(result, _alphaBeta(sdot, depth + 1, 0, alpha, beta))
+                        result =min(result, alphaBeta(sdot, depth + 1, 0, alpha, beta))
                     else:
-                        result = min(result, _alphaBeta(sdot, depth, agentIndex + 1, alpha, beta))
+                        result = min(result, alphaBeta(sdot, depth, agentIndex + 1, alpha, beta))
                     beta = min(beta, result)
                     if beta < alpha:
                         break
-            return result
+                return result
 
-        result = _alphaBeta(gameState, 1, 0, -1e20, 1e20)
-        return _removeStop(gameState.getLegalActions(0))[ActionScore.index(max(ActionScore))]
+        result = alphaBeta(gameState, 1, 0, -1e20, 1e20)
+        #print(removeStop(gameState.getLegalActions(0)), ActionScore)
+        return removeStop(gameState.getLegalActions(0))[ActionScore.index(max(ActionScore))]
         util.raiseNotDefined()
 
 

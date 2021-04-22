@@ -218,39 +218,39 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
                     actions.append(x)
             return actions
 
-        def alphaBeta(curGameState, depth, agentIndex, alpha, beta):
-            if (depth >= self.depth and (numAgent==1 or agentIndex == numAgent)) or curGameState.isWin() or curGameState.isLose():
-                return self.evaluationFunction(curGameState)
+        def alphaBeta(currentState, depth, agentIndex, alpha, beta):
+            if (depth >= self.depth and (numAgent==1 or agentIndex == numAgent)) or currentState.isWin() or currentState.isLose():
+                return self.evaluationFunction(currentState)
 
-            if agentIndex == 0:  # Pacman max
-                result = -1e10
-                for a in removeStop(curGameState.getLegalActions(agentIndex)):
-                    sdot = curGameState.generateSuccessor(agentIndex, a)
+            if agentIndex == 0:
+                result = float('-inf')
+                for action in removeStop(currentState.getLegalActions(agentIndex)):
+                    nextState = currentState.generateSuccessor(agentIndex, action)
                     if agentIndex == numAgent - 1:
-                        result = max(result, alphaBeta(sdot, depth + 1, 0, alpha, beta))
+                        result = max(result, alphaBeta(nextState, depth + 1, 0, alpha, beta))
                     else:
-                        result = max(result, alphaBeta(sdot, depth, agentIndex + 1, alpha, beta))
+                        result = max(result, alphaBeta(nextState, depth, agentIndex + 1, alpha, beta))
                     alpha = max(alpha, result)
                     if depth == 1:
                         ActionScore.append(result)
                     if beta < alpha:
                         break
                 return result
-            else:  # Ghost min
-                result = 1e10
-                for a in removeStop(curGameState.getLegalActions(agentIndex)):
-                    sdot = curGameState.generateSuccessor(agentIndex, a)
+            else:
+                result = float('inf')
+                for action in removeStop(currentState.getLegalActions(agentIndex)):
+                    nextState = currentState.generateSuccessor(agentIndex, action)
                     if depth < self.depth and agentIndex == numAgent - 1:
-                        result =min(result, alphaBeta(sdot, depth + 1, 0, alpha, beta))
+                        result =min(result, alphaBeta(nextState, depth + 1, 0, alpha, beta))
                     else:
-                        result = min(result, alphaBeta(sdot, depth, agentIndex + 1, alpha, beta))
+                        result = min(result, alphaBeta(nextState, depth, agentIndex + 1, alpha, beta))
                     beta = min(beta, result)
                     if beta < alpha:
                         break
                 return result
-
-        result = alphaBeta(gameState, 1, 0, -1e20, 1e20)
-        return removeStop(gameState.getLegalActions(0))[ActionScore.index(max(ActionScore))]
+        alphaBetaPruning = alphaBeta(gameState, 1, 0, float('-inf'), float('inf'))
+        bestActionIndex=ActionScore.index(max(ActionScore))
+        return removeStop(gameState.getLegalActions(0))[bestActionIndex]
         util.raiseNotDefined()
 
 

@@ -307,6 +307,53 @@ def betterEvaluationFunction(currentGameState):
     DESCRIPTION: <write something here so we know what you did>
     """
     "*** YOUR CODE HERE ***"
+
+    def _scoreFromGhost(gameState):
+        score = 0
+        for ghost in gameState.getGhostStates():
+            disGhost = manhattanDistance(gameState.getPacmanPosition(), ghost.getPosition())
+            if ghost.scaredTimer > 0:
+                score += pow(max(8 - disGhost, 0), 2)
+            else:
+                score -= pow(max(7 - disGhost, 0), 2)
+        return score
+
+    def _scoreFromFood(gameState):
+        disFood = []
+        for food in gameState.getFood().asList():
+            disFood.append(1.0 / manhattanDistance(gameState.getPacmanPosition(), food))
+        if len(disFood) > 0:
+            return max(disFood)
+        else:
+            return 0
+
+    def _scoreFromCapsules(gameState):
+        score = []
+        for Cap in gameState.getCapsules():
+            score.append(50.0 / manhattanDistance(gameState.getPacmanPosition(), Cap))
+        if len(score) > 0:
+            return max(score)
+        else:
+            return 0
+
+    def _suicide(gameState):
+        score = 0
+        disGhost = 1e6
+        for ghost in gameState.getGhostStates():
+            disGhost = min(manhattanDistance(gameState.getPacmanPosition(), ghost.getPosition()), disGhost)
+        score -= pow(disGhost, 2)
+        if gameState.isLose():
+            score = 1e6
+        return score
+
+    score = currentGameState.getScore()
+    scoreGhosts = _scoreFromGhost(currentGameState)
+    scoreFood = _scoreFromFood(currentGameState)
+    scoreCapsules = _scoreFromCapsules(currentGameState)
+    # if score < 800 and currentGameState.getNumFood() <= 1 and len(currentGameState.getCapsules()) == 0:
+    #  return _suicide(currentGameState)
+    # else:
+    return score + scoreGhosts + scoreFood + scoreCapsules
     util.raiseNotDefined()
 
 

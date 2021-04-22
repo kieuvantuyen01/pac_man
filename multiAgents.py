@@ -51,7 +51,7 @@ class ReflexAgent(Agent):
 
         return legalMoves[chosenIndex]
 
-    def evaluationFunction(self, currentGameState, action):
+    def evaluationFunction(self, currentGameState, action, BIGNUM=10000):
         """
         Design a better evaluation function here.
 
@@ -74,21 +74,37 @@ class ReflexAgent(Agent):
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
         "*** YOUR CODE HERE ***"
-        closestghost = min([manhattanDistance(newPos, ghost.getPosition()) for ghost in newGhostStates])
+        distancesToGhosts = []
+        for ghostState in newGhostStates:
+            ghostDistance = manhattanDistance(newPos, ghostState.getPosition())
+            distancesToGhosts.append(ghostDistance)
+        nearestGhost = min(distancesToGhosts)
+        farthestGhost = max(distancesToGhosts)
 
-        if closestghost:
-            ghost_dist = -10 / closestghost
-        else:
-            ghost_dist = -1000
+        nearestGhostScore = 1.0 / (nearestGhost * 1.0 + 1)
+        farthestGhostScore = 1.0 / (farthestGhost * 1.0 + 1)
+        avgGhostScore = (nearestGhostScore + farthestGhostScore) / 2.0
 
-        foodList = newFood.asList()
-        if foodList:
-            closestfood = min([manhattanDistance(newPos, food) for food in foodList])
-        else:
-            closestfood = 0
+        newFoodList = newFood.asList()
+        distancesToFood = []
+        nearestFood = 0
+        if newFoodList:
+            for food in newFoodList:
+                foodDistance = manhattanDistance(newPos, food)
+                distancesToFood.append(foodDistance)
+            nearestFood = min(distancesToFood)
 
-        # large weight to number of food left
-        return (-2 * closestfood) + ghost_dist - (100 * len(foodList))
+        nearestFoodScore = 10.0 / (nearestFood * 1.0 + 1)
+        remainFoodScore = 50.0 / (len(newFoodList) * 1.0 + 1)
+
+        point = nearestFoodScore + remainFoodScore + avgGhostScore
+
+        if newScaredTimes[distancesToGhosts.index(nearestGhost)] <= 0:
+            point -= 11.0 / (nearestGhost * 1.0 + 1)
+        elif newScaredTimes[distancesToGhosts.index(nearestGhost)] > 20:
+            point += 100
+
+        return successorGameState.getScore() + point
 
 
 def scoreEvaluationFunction(currentGameState):
@@ -193,40 +209,46 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         numAgent = gameState.getNumAgents()
         ActionScore = []
 
-        def _removeStop(List):
-            return [x for x in List if x != 'Stop']
+        def removeStop(ListAction):
+            actions=[]
+            for x in ListAction:
+                if x != 'Stop':
+                    actions.append(x)
+            return actions
 
-        def _alphaBeta(curGameState, depth, agentIndex, alpha, beta):
-            if (depth >= self.depth and agentIndex == numAgent) or curGameState.isWin() or curGameState.isLose():
+        def alphaBeta(curGameState, depth, agentIndex, alpha, beta):
+            if (depth >= self.depth and (numAgent==1 or agentIndex == numAgent)) or curGameState.isWin() or curGameState.isLose():
                 return self.evaluationFunction(curGameState)
+
             if agentIndex == 0:  # Pacman max
-                result = alpha
-                for a in _removeStop(curGameState.getLegalActions(agentIndex)):
+                result = -1e10
+                for a in removeStop(curGameState.getLegalActions(agentIndex)):
                     sdot = curGameState.generateSuccessor(agentIndex, a)
                     if agentIndex == numAgent - 1:
-                        result = max(result, _alphaBeta(sdot, depth + 1, 0, alpha, beta))
+                        result = max(result, alphaBeta(sdot, depth + 1, 0, alpha, beta))
                     else:
-                        result = max(result, _alphaBeta(sdot, depth, agentIndex + 1, alpha, beta))
+                        result = max(result, alphaBeta(sdot, depth, agentIndex + 1, alpha, beta))
                     alpha = max(alpha, result)
                     if depth == 1:
                         ActionScore.append(result)
                     if beta < alpha:
                         break
+                return result
             else:  # Ghost min
-                result = beta
-                for a in _removeStop(curGameState.getLegalActions(agentIndex)):
+                result = 1e10
+                for a in removeStop(curGameState.getLegalActions(agentIndex)):
                     sdot = curGameState.generateSuccessor(agentIndex, a)
                     if depth < self.depth and agentIndex == numAgent - 1:
-                        result = min(result, _alphaBeta(sdot, depth + 1, 0, alpha, beta))
+                        result =min(result, alphaBeta(sdot, depth + 1, 0, alpha, beta))
                     else:
-                        result = min(result, _alphaBeta(sdot, depth, agentIndex + 1, alpha, beta))
+                        result = min(result, alphaBeta(sdot, depth, agentIndex + 1, alpha, beta))
                     beta = min(beta, result)
                     if beta < alpha:
                         break
-            return result
+                return result
 
-        result = _alphaBeta(gameState, 1, 0, -1e20, 1e20)
-        return _removeStop(gameState.getLegalActions(0))[ActionScore.index(max(ActionScore))]
+        result = alphaBeta(gameState, 1, 0, -1e20, 1e20)
+        return removeStop(gameState.getLegalActions(0))[ActionScore.index(max(ActionScore))]
         util.raiseNotDefined()
 
 

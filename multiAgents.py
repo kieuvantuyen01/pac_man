@@ -186,13 +186,13 @@ class MinimaxAgent(MultiAgentSearchAgent):
                 else:
                     return min(distances)
 
-        best_score = float("inf")
+        best_score = float("-inf")
         best_action = Directions.STOP
         for action in gameState.getLegalActions(0):
             score = miniMax(1, 1, gameState.generateSuccessor(0, action))
             if (score > best_score):
-                best_action = action
                 best_score = score
+                best_action = action
         return best_action
 
 

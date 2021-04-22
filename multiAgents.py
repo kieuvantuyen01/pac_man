@@ -51,7 +51,7 @@ class ReflexAgent(Agent):
 
         return legalMoves[chosenIndex]
 
-    def evaluationFunction(self, currentGameState, action, BIGNUM=10000):
+    def evaluationFunction(self, currentGameState, action):
         """
         Design a better evaluation function here.
 

@@ -10,7 +10,7 @@
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
 # Student side autograding was added by Brad Miller, Nick Hay, and
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
-
+import math
 
 from util import manhattanDistance
 from game import Directions
@@ -107,6 +107,7 @@ class ReflexAgent(Agent):
         return successorGameState.getScore() + point
 
 
+
 def scoreEvaluationFunction(currentGameState):
     """
     This default evaluation function just returns the score of the state.
@@ -196,6 +197,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
         return best_action
 
 
+
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
     Your minimax agent with alpha-beta pruning (question 3)
@@ -261,11 +263,39 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
     def getAction(self, gameState):
         """
         Returns the expectimax action using self.depth and self.evaluationFunction
-
         All ghosts should be modeled as choosing uniformly at random from their
         legal moves.
         """
         "*** YOUR CODE HERE ***"
+        return self.expectimax(gameState, self.depth)[1]
+
+    def isEndGame(self, gameState, depth):
+        return gameState.isWin() or gameState.isLose() or depth == 0
+
+    def expectimax(self, gameState, depth, agentIndex=0):
+        utility = 0 if agentIndex != 0 else -math.inf
+        expectimaxAction = None
+        if self.isEndGame(gameState, depth):
+            return self.evaluationFunction(gameState), expectimaxAction
+
+        numAgents = gameState.getNumAgents()
+        actionList = gameState.getLegalActions(agentIndex)
+
+        for action in actionList:
+            newState = gameState.generateSuccessor(agentIndex, action)
+            if agentIndex == 0:
+                newUtility, newAction = self.expectimax(newState, depth, agentIndex + 1)
+                if newUtility > utility:
+                    utility, expectimaxAction = newUtility, action
+            else:
+                if agentIndex == (numAgents - 1):
+                    nextAgentIndex, nextDepth = 0, depth - 1
+                else:
+                    nextAgentIndex, nextDepth = agentIndex + 1, depth
+                newUtility, newAction = self.expectimax(newState, nextDepth, nextAgentIndex)
+                utility += 1.0 * newUtility / (len(actionList))
+
+        return utility, expectimaxAction
         util.raiseNotDefined()
 
 

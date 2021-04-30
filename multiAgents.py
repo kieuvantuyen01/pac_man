@@ -277,7 +277,31 @@ def betterEvaluationFunction(currentGameState):
     DESCRIPTION: <write something here so we know what you did>
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    infinity = float('inf')
+    position = currentGameState.getPacmanPosition()
+    score = currentGameState.getScore()
+    ghostStates = currentGameState.getGhostStates()
+    foodList = currentGameState.getFood().asList()
+    capsuleList = currentGameState.getCapsules()
+
+    if currentGameState.isWin(): return infinity
+    if currentGameState.isLose(): return -infinity
+
+    for ghost in ghostStates:
+        d = manhattanDistance(position, ghost.getPosition())
+        if ghost.scaredTimer > 6 and d < 2:
+            return infinity
+        elif ghost.scaredTimer < 5 and d < 2:
+            return -infinity
+
+    foodDistance = 1.0/closestItemDistance(currentGameState, foodList)
+
+    # Distance to closest capsule
+    capsuleDistance = closestItemDistance(currentGameState, capsuleList)
+    capsuleDistance = 0.0 if capsuleDistance is None else 1.0/capsuleDistance
+
+    # Coefficients are kinda arbitrary but this combination seems to work
+    return 10.0*foodDistance + 5.0*score + 0.5*capsuleDistance
 
 
 # Abbreviation

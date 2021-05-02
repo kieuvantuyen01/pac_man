@@ -176,7 +176,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
                 else:
                     return miniMax(0, depth + 1, gameState) #Return layer with depth = depth + 1 
             else:
-                actions = gameState.getLegalActions(agentIndex) #List of legal actions for an agent
+                actions = gameState.getLegalActions(agentIndex) 
                 if len(actions) == 0:                           
                     return self.evaluationFunction(gameState)   #If there is no action left, return point of Pacman
                 distances = (miniMax(agentIndex + 1, depth,

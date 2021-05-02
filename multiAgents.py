@@ -188,7 +188,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
 
         # Return best direction for Pacman
         bestScore = float("-inf")
-        bestAction = Directions.STOP
+        bestAction = Directions.LEFT
         for action in gameState.getLegalActions(0):
             score = miniMax(1, 1, gameState.generateSuccessor(0, action))
             if score > bestScore:

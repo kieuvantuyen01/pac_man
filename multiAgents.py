@@ -172,20 +172,21 @@ class MinimaxAgent(MultiAgentSearchAgent):
         def miniMax(agentIndex, depth, gameState):
             if agentIndex == gameState.getNumAgents():
                 if depth == self.depth or gameState.isWin() or gameState.isLose():
-                    return self.evaluationFunction(gameState)
+                    return self.evaluationFunction(gameState)  #When reaching certain game state condition, return point of Pacman 
                 else:
-                    return miniMax(0, depth + 1, gameState)
+                    return miniMax(0, depth + 1, gameState) #Return layer with depth = depth + 1 
             else:
-                actions = gameState.getLegalActions(agentIndex)
-                if len(actions) == 0:
-                    return self.evaluationFunction(gameState)
+                actions = gameState.getLegalActions(agentIndex) #Returns a list of legal actions for an agent
+                if len(actions) == 0:                           
+                    return self.evaluationFunction(gameState)   #If there is no action left, return point of Pacman
                 distances = (miniMax(agentIndex + 1, depth,
-                                     gameState.generateSuccessor(agentIndex, action)) for action in actions)
+                                     gameState.generateSuccessor(agentIndex, action)) for action in actions)  
                 if agentIndex == 0:
-                    return max(distances)
+                    return max(distances)  #Return max distance between pacman and ghosts
                 else:
-                    return min(distances)
+                    return min(distances) #Return minimum distance between pacman and ghosts
 
+        # Return best direction for Pacman
         bestScore = float("-inf")
         bestAction = Directions.STOP
         for action in gameState.getLegalActions(0):
